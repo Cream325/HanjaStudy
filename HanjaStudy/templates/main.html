@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <link href="./static/css/main.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@icon/themify-icons@1.0.1-alpha.3/themify-icons.min.css" rel="stylesheet">
+    <script type="module" src="../static/main.js"></script>
+
+    <title>한자 학습 카드 앱 — 급수별 선택, 사용자 단어장, 카드·필기 통합 모드</title>
+  </head>
+  <body>
+    <div class="app">
+      <!-- 사이드바 -->
+      <div class="sidebar">
+
+        <div class="sidebar-scroll">
+
+          <!-- 급수 선택 -->
+          <div>
+            <div class="sidebar-section-title">급수 선택</div>
+            <div id="levelGrid" class="level-grid"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- 단어장 -->
+          <div>
+            <div class="sidebar-section-title">단어장</div>
+            <div id="vocabList" class="vocabulary-list"></div>
+            <div class="vocabulary-add-row" style="margin-top: 6px;">
+              <input id="vocabNameInput" class="vocabulary-input" type="text" placeholder="단어장 이름..." maxlength="16">
+              <button id="vocabularyAddBtn" class="vocabulary-add-btn" title="단어장 생성">+</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- 표시 설정 -->
+          <div>
+            <div class="sidebar-section-title">표시 설정</div>
+            <div class="toggle-group">
+              <div class="toggle-row">
+                <span class="toggle-label">자형 (한자)</span>
+                <label class="toggle">
+                  <input id="showChar" type="checkbox" checked>
+                  <span id="showCharTrack" class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">뜻 (의미)</span>
+                <label class="toggle">
+                  <input id="showMeaning" type="checkbox" checked>
+                  <span id="showMeaningTrack" class="toggle-track"></span>
+                </label>
+              </div>
+              <div class="toggle-row">
+                <span class="toggle-label">음 (읽기)</span>
+                <label class="toggle">
+                  <input id="showReading" type="checkbox" checked>
+                  <span id="showReadingTrack" class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 하단 고정: 진행도 + 네비 + 단축키 -->
+        <div class="sidebar-footer">
+          <div id="progressLabel" class="progress-label">— / —</div>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="nav-group">
+            <button id="navPrevCardBtn" class="nav-btn">‹</button>
+            <button id="navNextCardBtn" class="nav-btn">›</button>
+          </div>
+          <div style="margin-top: 10px;">
+            <div class="sidebar-section-title" style="margin-bottom: 6px;">단축키</div>
+            <div class="shortcut-group">
+              <div class="shortcut-row">
+                <span class="shortcut-desc">이전 / 다음 카드</span>
+                <div class="kbd-wrap">
+                  <kbd>←</kbd><kbd>→</kbd>
+                </div>
+              </div>
+
+              <div class="shortcut-row">
+                <span class="shortcut-desc">실행 취소</span>
+                <div class="kbd-wrap">
+                  <kbd>Ctrl + Z</kbd>
+                </div>
+              </div>
+
+              <div class="shortcut-row">
+                <span class="shortcut-desc">실행 취소 복구</span>
+                <div class="kbd-wrap">
+                  <kbd>Ctrl + Y</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 -->
+      <div class="main">
+        <div id="emptyState" class="empty-state">
+          급수를 선택하거나<br>단어장을 만들어 학습을 시작하세요
+        </div>
+
+        <div id="hanjaCard" class="hanja-card" style="display: none;">
+          <span id="levelBadge" class="hanja-card-level-badge">—</span>
+
+          <span id="cardBadge" class="hanja-card-badge">—</span>
+          <button id="bookmarkBtn" class="hanja-card-bookmark-btn" title="단어장에 추가">
+            <i class="ti ti-bookmark" aria-hidden="true"></i>
+          </button>
+
+          <div id="hanjaChar" class="hanja-card-char"></div>
+
+          <div>
+            <div id="hanjaMeaning" class="hanja-card-meaning"></div>
+            <div id="hanjaReading" class="hanja-card-reading"></div>
+          </div>
+        </div>
+
+        <div id="drawArea" class="draw-area" style="display: none;">
+          <div class="draw-header">
+            <span class="draw-title">필기 연습</span>
+
+            <div class="draw-actions">
+              <button id="undoBtn" class="icon-btn" disabled>
+                <i class="ti ti-back-left" aria-hidden="true"></i> 취소
+              </button>
+
+              <button id="redoBtn" class="icon-btn" disabled>
+                <i class="ti ti-back-right" aria-hidden="true"></i> 복구
+              </button>
+
+              <button id="clearCanvasBtn" class="icon-btn">
+                <i class="ti ti-trash" aria-hidden="true"></i> 지우기
+              </button>
+            </div>
+          </div>
+          
+          <div class="canvas-wrap">
+            <svg class="canvas-guide" viewBox="0 0 590 290" xmlns="http://www.w3.org/2000/svg">
+              <line x1="295" y1="0" x2="295" y2="290" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <line x1="0" y1="145" x2="590" y2="145" stroke="var(--color-border-tertiary)" stroke-width="0.5" stroke-dasharray="4,4"/>
+              <rect x="8" y="8" width="574" height="274" stroke="var(--color-border-tertiary)" stroke-width="0.5" fill="none"/>
+            </svg>
+            <canvas id="drawCanvas" width="590" height="290"></canvas>
+          </div>
+
+          <div class="stroke-picker">
+            <span class="stroke-label">굵기</span>
+            <div id="thicknessBtn1" class="stroke-dot active" data-type="width" style="width: 14px; height: 14px; background:#2C2C2A;"></div>
+            <div id="thicknessBtn2" class="stroke-dot" data-type="width" style="width: 18px; height: 18px; background:#2C2C2A;"></div>
+            <div id="thicknessBtn3" class="stroke-dot" data-type="width" style="width: 22px; height: 22px; background:#2C2C2A;"></div>
+
+            <div class="sep"></div>
+
+            <span class="stroke-label">색상</span>
+            <div id="colorBtn" class="stroke-dot active" data-type="color" style="width: 18px; height: 18px; background:#ffffff;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 단어장 한자 추가 모달 -->
+    <div id="modalOverlay" class="modal-overlay">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <span id="modalTitle" class="modal-title">단어장에 한자 추가</span>
+          <button id="modalCloseBtn" class="modal-close">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div id="modalTabs" class="modal-level-tabs"></div>
+          <input id="modalSearch" class="modal-search" type="text" placeholder="한자 검색...">
+          <div id="modalGrid" class="modal-hanja-grid"></div>
+        </div>
+
+        <div class="modal-footer">
+          <span id="modalSelCount" class="modal-sel-count">0자 선택됨</span>
+          <button id="modalConfirm" class="modal-confirm" disabled>저장</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
