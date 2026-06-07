@@ -753,17 +753,17 @@
     border-color:#534AB7;
   }
 
-  .modal-hanja-btn {
+  .modal-hanja-btn.selected {
+    display: block;
+  }
+
+  .modal-check {
     position: absolute;
     top: 2px;
     right: 3px;
     font-size: 9px;
     color: var(--color-text-primary);
     display: none;
-  }
-
-  .modal-hanja-btn.selected {
-    display: block;
   }
 
   .modal-footer {
@@ -799,6 +799,47 @@
   .modal-confirm:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+
+  .modal-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-top: 4px;
+  }
+ 
+  .modal-page-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: transparent;
+    color: var(--color-text-primary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1;
+    padding: 0;
+  }
+ 
+  .modal-page-btn:hover:not(:disabled) {
+    background: var(--color-background-tertiary);
+  }
+ 
+  .modal-page-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+ 
+  .modal-page-info {
+    font-size: 11px;
+    color: var(--color-text-tertiary);
+    white-space: nowrap;
   }
 
   .modal-level-tabs {

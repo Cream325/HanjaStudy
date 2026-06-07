@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['C:\\Users\\pto55\\OneDrive\\바탕 화면\\Development\\Everything_is_Programming\\No05_Python\\HanjaStudy\\HanjaStudy\\main.py'],
     pathex=[],
     binaries=[],
     datas=[],

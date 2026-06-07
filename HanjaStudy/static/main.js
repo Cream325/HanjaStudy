@@ -18,6 +18,8 @@ let redoStack = [];
 let modalVocabId = null;
 let modalSelected = new Set();
 let modalFilterLevel = -1;
+let modalPage = 0;
+const MODAL_PAGE_SIZE = 50;
 const canvas = document.getElementById('drawCanvas');
 const ctx = canvas.getContext('2d');
 ctx.lineCap = 'round';
@@ -174,7 +176,7 @@ function renderVocabList() {
     vocabBooks.forEach(v => {
         const item = document.createElement('button');
         item.className = `vocabulary-item${(activeVocabId === v.id ? ' active' : '')}`;
-        item.addEventListener('event', () => selectVocabulary(v.id));
+        item.addEventListener('click', () => selectVocabulary(v.id));
 
         item.addEventListener('mouseenter', () => {
             item.querySelectorAll('.vocabulary-del, .vocabulary-edit-btn').forEach(el => el.style.opacity = '1');
@@ -196,7 +198,7 @@ function renderVocabList() {
 
         const deleteButton = createButton('vocabularyDeleteBtn', 'vocabulary-del', '×');
         deleteButton.title = '삭제';
-        deleteButton.addEventListener('click', evnet => deleteVocabulary(v.id, event));
+        deleteButton.addEventListener('click', event => deleteVocabulary(v.id, event));
 
         item.append(nameSpan, countSpan, editButton, deleteButton);
         list.appendChild(item);
@@ -219,6 +221,7 @@ function createModal(id, event) {
     document.getElementById('modalTitle').textContent = `「${vocab.name}」 한자 추가`;
     modalSelected = new Set(vocab.chars.map(c => c.char));
     modalFilterLevel = -1;
+    modalPage = 0;
     document.getElementById('modalSearch').value = '';
 
     renderModalTabs();
@@ -241,6 +244,7 @@ function renderModalTabs() {
     const allTabBtn = createButton('modalAllTabBtn', `modal-tab${(modalFilterLevel === -1 ? ' active' : '')}`, '전체');
     allTabBtn.addEventListener('click', () => {
         modalFilterLevel = -1;
+        modalPage = 0;
         renderModalTabs();
         renderModalGrid();
     });
@@ -253,6 +257,7 @@ function renderModalTabs() {
         const tabBtn = createButton(`modalTab${idx}Btn`, `modal-tab${(modalFilterLevel === idx ? ' active': '')}`, idx);
         tabBtn.addEventListener('click', () => {
             modalFilterLevel = idx;
+            modalPage = 0;
             renderModalTabs();
             renderModalGrid();
         });
@@ -278,10 +283,21 @@ function renderModalGrid() {
     if (query) {
         pool = pool.filter(h => h.char.includes(query) || h.reading.includes(query) || h.meaning.includes(query));
     }
+
+    const totalPage = Math.ceil(pool.length / MODAL_PAGE_SIZE);
+
+    // 페이지 범위 초과 시 보정
+    if (modalPage >= totalPage) {
+        modalPage = Math.max(0, totalPage - 1);
+    }
+
+    const pageStart = modalPage * MODAL_PAGE_SIZE;
+    const pageEnd = pageStart + MODAL_PAGE_SIZE;
+    const pagePool = pool.slice(pageStart, pageEnd);
   
-    pool.forEach(h => {
+    pagePool.forEach(h => {
         const btn = createButton('modalHanjaBtn', `modal-hanja-btn${(modalSelected.has(h.char) ? ' selected' : '')}`, `${h.char}`);
-        btn.title = `${h.reading} — ${h.meaning}`;
+        btn.title = `${h.meaning} — ${h.reading}`;
         btn.addEventListener('click', () => {
             if (modalSelected.has(h.char)) {
                 modalSelected.delete(h.char);
@@ -299,7 +315,45 @@ function renderModalGrid() {
         btn.appendChild(span);
 
         grid.appendChild(btn);
+        console.log('Created');
     });
+
+    renderModalPagination(totalPage, pool.length);
+}
+
+function renderModalPagination(totalPage, totalCount) {
+    const wrap = document.getElementById('modalPagination');
+    wrap.innerHTML = '';
+
+    if (totalPage <= 1) {
+        return;
+    }
+
+    const info = createSpan('modalPageInfo', 'modal-page-info', `${modalPage + 1} / ${totalPage} 페이지 (총 ${totalCount}자)`);
+
+    const prevBtn = createButton('modalPagePrev', 'modal-page-btn', '‹');
+    prevBtn.title = '이전 페이지';
+    prevBtn.disabled = modalPage === 0;
+    prevBtn.addEventListener('click', () => {
+        if (modalPage > 0) {
+            modalPage--;
+            renderModalGrid();
+        }
+    });
+
+    const nextBtn = createButton('modalPageNext', 'modal-page-btn', '›');
+    nextBtn.title = '다음 페이지';
+    nextBtn.disabled = modalPage >= totalPage - 1;
+    nextBtn.addEventListener('click', () => {
+        if (modalPage < totalPage - 1) {
+            modalPage++;
+            renderModalGrid();
+        }
+    });
+
+    wrap.appendChild(prevBtn);
+    wrap.appendChild(info);
+    wrap.appendChild(nextBtn);
 }
 
 function updateModalCount() {
